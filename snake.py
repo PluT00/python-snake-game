@@ -38,6 +38,11 @@ class Field:
 			for col in row:
 				stdscr.addstr(" " + col + " ")
 			stdscr.addstr("\n")
+
+		stdscr.addstr(
+			self.y_size - 1, self.x_size * 3 + 5,
+			f'Score: {len(self.snake_parts)}'
+		)
 		stdscr.refresh()
 
 	def spawn_food(self):
@@ -105,6 +110,7 @@ class Snake(Field):
 	def run(self, stdscr):
 		stdscr.timeout(0)
 		stdscr.nodelay(True)
+		curses.curs_set(0)
 		A = 0
 		while True:
 			if self.is_alive():
