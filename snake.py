@@ -40,7 +40,7 @@ class Menu:
 
 
 class Field:
-	def __init__(self, x_size, y_size, *args, **kwargs):
+	def __init__(self, x_size, y_size):
 		self.menu = Menu()
 
 		self.x_size = x_size
@@ -84,7 +84,7 @@ class Field:
 
 		stdscr.addstr(
 			self.y_size - 1, self.x_size * 3 + 5,
-			f'Score: {len(self.snake_parts)}'
+			f'Score: {len(self.snake_parts) - 1}'
 		)
 		stdscr.refresh()
 
@@ -164,7 +164,12 @@ class Snake(Field):
 				self.move()
 				self.draw_field(stdscr)
 				stdscr.refresh()
-				time.sleep(.4)
+
+				time_to_wait = 0.4 - len(self.snake_parts) / 100
+				if time_to_wait >= 0.1:
+					time.sleep(time_to_wait)
+				else:
+					time.sleep(0.1)
 			elif self.menu.state == 'in_menu':
 				self.menu.run_menu(stdscr)
 
