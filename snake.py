@@ -11,6 +11,8 @@ class Menu:
 
 		self.state = 'in_menu'
 
+		self.last_score = 0
+
 	def navigation(self, stdscr):
 		key = stdscr.getch()
 
@@ -27,6 +29,8 @@ class Menu:
 	def draw_menu(self, stdscr):
 		curses.curs_set(0)
 		stdscr.erase()
+		if self.last_score != 0:
+			stdscr.addstr(3, 11, f' Your Score: {self.last_score} ', curses.A_BLINK)
 		for key, item in enumerate(self.items):
 			if self.position == key:
 				stdscr.addstr(key + 5, 10, "-> " + item + " <-", curses.A_BOLD)
@@ -105,6 +109,7 @@ class Field:
 		head = self.snake_parts[-1]
 		body = self.snake_parts[:-1]
 		if head in body:
+			self.menu.last_score = len(self.snake_parts) - 1
 			self.menu.state = 'in_menu'
 			self.snake_parts = self.start_snake[::]
 
