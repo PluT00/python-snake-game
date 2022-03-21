@@ -1,15 +1,54 @@
 import curses
 import random
+import sys
 import time
 
 
+class Menu:
+	def __init__(self):
+		self.position = 0
+		self.items = ['New game', 'Quit']
+
+		self.state = 'in_menu'
+
+	def navigation(self, stdscr):
+		key = stdscr.getch()
+
+		if key == curses.KEY_UP and self.position > 0:
+			self.position -= 1
+		elif key == curses.KEY_DOWN and self.position < len(self.items) - 1:
+			self.position += 1
+		if key in {curses.KEY_ENTER, 10, 13}:
+			if self.position == 0:
+				self.state = 'in_game'
+			elif self.position == 1:
+				sys.exit()
+
+	def draw_menu(self, stdscr):
+		curses.curs_set(0)
+		stdscr.erase()
+		for key, item in enumerate(self.items):
+			if self.position == key:
+				stdscr.addstr(key + 5, 10, "-> " + item + " <-", curses.A_BOLD)
+			else:
+				stdscr.addstr(key + 5, 10, "   " + item + "   ")
+		stdscr.refresh()
+
+	def run_menu(self, stdscr):
+		self.draw_menu(stdscr)
+		self.navigation(stdscr)
+
+
 class Field:
-	def __init__(self, x_size, y_size):
+	def __init__(self, x_size, y_size, *args, **kwargs):
+		self.menu = Menu()
+
 		self.x_size = x_size
 		self.y_size = y_size
 
 		self.food = []
-		self.snake_parts = [[round(self.x_size / 2), round(self.y_size / 2)]]
+		self.start_snake = [[round(self.x_size / 2), round(self.y_size / 2)]]
+		self.snake_parts = [[round(self.x_size / 2), round(self.y_size / 2)]][::]
 		self.spawn_food()
 
 		self.direction = curses.KEY_RIGHT
@@ -26,12 +65,16 @@ class Field:
 
 	def draw_field(self, stdscr):
 		field = self.init_field()
-		snake = '@'
+		head = '@'
+		body = 'o'
 		food = '$'
 
 		field[self.food[1]][self.food[0]] = food
-		for snake_part in self.snake_parts:
-			field[snake_part[1]][snake_part[0]] = snake
+		for key, snake_part in enumerate(self.snake_parts):
+			if key == len(self.snake_parts) - 1:
+				field[snake_part[1]][snake_part[0]] = head
+			else:
+				field[snake_part[1]][snake_part[0]] = body
 
 		stdscr.clear()
 		for row in field:
@@ -57,6 +100,13 @@ class Field:
 			self.food = []
 			self.spawn_food()
 			self.snake_parts.insert(0, self.snake_parts[0][::])
+
+	def is_alive(self):
+		head = self.snake_parts[-1]
+		body = self.snake_parts[:-1]
+		if head in body:
+			self.menu.state = 'in_menu'
+			self.snake_parts = self.start_snake[::]
 
 
 class Snake(Field):
@@ -102,31 +152,21 @@ class Snake(Field):
 			else:
 				self.snake_parts[-1][1] = 1
 
-	def is_alive(self):
-		head = self.snake_parts[-1]
-		body = self.snake_parts[:-1]
-		return head not in body
-
 	def run(self, stdscr):
 		stdscr.timeout(0)
 		stdscr.nodelay(True)
 		curses.curs_set(0)
-		A = 0
 		while True:
-			if self.is_alive():
+			self.is_alive()
+			if self.menu.state == 'in_game':
 				self.set_direction(stdscr)
 				self.eat_food()
 				self.move()
 				self.draw_field(stdscr)
 				stdscr.refresh()
 				time.sleep(.4)
-			else:
-				break
-		stdscr.erase()
-		stdscr.addstr("Game Over!")
-		stdscr.refresh()
-		stdscr.nodelay(False)
-		stdscr.getkey()
+			elif self.menu.state == 'in_menu':
+				self.menu.run_menu(stdscr)
 
 
 if __name__ == "__main__":
