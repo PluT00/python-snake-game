@@ -33,9 +33,9 @@ class Menu:
 			stdscr.addstr(3, 11, f' Your Score: {self.last_score} ', curses.A_BLINK)
 		for key, item in enumerate(self.items):
 			if self.position == key:
-				stdscr.addstr(key + 5, 10, "-> " + item + " <-", curses.A_BOLD)
+				stdscr.addstr(key + 5, 10, "◊ " + item + " ◊", curses.A_BOLD)
 			else:
-				stdscr.addstr(key + 5, 10, "   " + item + "   ")
+				stdscr.addstr(key + 5, 10, "  " + item + "  ")
 		stdscr.refresh()
 
 	def run_menu(self, stdscr):
